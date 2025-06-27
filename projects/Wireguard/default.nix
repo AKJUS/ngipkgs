@@ -25,7 +25,7 @@
       examples.basic = {
         module = ./program/example.nix;
         description = "";
-        tests.basic = null;
+        tests.basic.module = null;
       };
     };
   };
@@ -36,15 +36,18 @@
       examples.basic.module = null;
     };
   };
-
   nixos.tests =
-    lib.foldl'
-      (acc: test: acc // { ${test} = "${sources.inputs.nixpkgs}/nixos/tests/wireguard/${test}.nix"; })
-      { }
-      [
-        "basic"
-        "namespaces"
-        "wg-quick"
-        "generated"
-      ];
+    let
+      nixosTests = lib.mapAttrs (_: test: {
+        module = test;
+      }) pkgs.nixosTests.wireguard;
+    in
+    lib.recursiveUpdate nixosTests {
+      # FIX:
+      "wireguard-dynamic-refresh-networkd-linux-latest" = {
+        problem.broken.reason = ''
+          https://buildbot.ngi.nixos.org/#/builders/987/builds/1
+        '';
+      };
+    };
 }

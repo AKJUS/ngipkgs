@@ -19,9 +19,7 @@
       module = lib.moduleLocFromOptionString "services.mastodon";
       examples.basic.module = null;
     };
-    tests = {
-      standard = "${sources.inputs.nixpkgs}/nixos/tests/web-apps/mastodon/standard.nix";
-      remote-databases = "${sources.inputs.nixpkgs}/nixos/tests/web-apps/mastodon/remote-databases.nix";
-    };
+    tests.standard.module = pkgs.nixosTests.mastodon.standard;
+    tests.remote-databases.module = pkgs.nixosTests.mastodon.remote-databases;
   };
 }
