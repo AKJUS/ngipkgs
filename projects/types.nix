@@ -105,17 +105,78 @@ let
             };
             module = mkOption {
               type = nullOr deferredModule;
+              description = ''
+                Contains the path to the NixOS module for the program.
+
+                For modules that reside in NixOS, use:
+
+                ```nix
+                {
+                  module = lib.moduleLocFromOptionString "programs.PROGRAM_NAME";
+                }
+                ```
+
+                If you want to extend such modules, you can import them in a new module:
+
+                ```nix
+                {
+                  module = ./module.nix;
+                }
+                ```
+
+                Where `module.nix` contains:
+
+                ```nix
+                { lib, ... }:
+                {
+                  imports = [
+                    (lib.moduleLocFromOptionString "programs.PROGRAM_NAME")
+                  ];
+
+                  options.programs.PROGRAM_NAME = {
+                    extra-option = lib.mkEnableOption "extra option";
+                  };
+                }
+                ```
+              '';
             };
             examples = mkOption {
               type = attrsOf types'.example;
-              default = { };
-            };
-            extensions = mkOption {
-              type = attrsOf (nullOr types'.plugin);
+              description = ''
+                Configurations that illustrate how to set up the program.
+
+                ::: {.note}
+                Each program must include at least one example, so users get an idea of what to do with it.
+                :::
+              '';
+              example = lib.literalExpression ''
+                nixos.modules.foobar.examples.basic = {
+                  module = ./programs/foobar/examples/basic.nix;
+                  description = "Basic configuration example for foobar";
+                  tests.foobar-basic.module = import ./programs/foobar/tests/basic.nix args;
+                };
+              '';
               default = { };
             };
             links = mkOption {
               type = attrsOf types'.link;
+              description = ''
+                Links to documentation or resources that may help building, configuring and testing the program.
+              '';
+              example = {
+                usage = {
+                  text = "Usage examples";
+                  url = "https://docs.foobar.com/quickstart";
+                };
+                build = {
+                  text = "Build from source";
+                  url = "https://docs.foobar.com/dev";
+                };
+              };
+              default = { };
+            };
+            extensions = mkOption {
+              type = attrsOf (nullOr types'.plugin);
               default = { };
             };
           };
@@ -174,7 +235,7 @@ let
           };
           tests = mkOption {
             description = "at least one test for the example";
-            type = attrsOf (nullOr types'.test);
+            type = attrsOf types'.test;
             default = { };
           };
           links = mkOption {
@@ -215,7 +276,21 @@ let
       };
     };
 
-    test = with types; either deferredModule package;
+    test = types.submodule {
+      options = {
+        module = mkOption {
+          # - null: needed, but not available
+          # - deferredModule: something that nixosTest will run
+          # - package: derivation from NixOS
+          type = with types; nullOr (either deferredModule package);
+          default = null;
+        };
+        problem = mkOption {
+          type = types.nullOr types'.problem;
+          default = null;
+        };
+      };
+    };
 
     projects = mkOption {
       type =
@@ -245,10 +320,22 @@ let
                         modules = {
                           programs = mkOption {
                             type = attrsOf types'.program;
+                            description = "Software that can be run in the shell";
+                            example = lib.literalExpression ''
+                              nixos.modules.programs.foobar = {
+                                module = ./programs/foobar/module.nix;
+                                examples.basic = {
+                                  module = ./programs/foobar/examples/basic.nix;
+                                  description = "Basic configuration example for foobar";
+                                  tests.basic.module = import ./programs/foobar/tests/basic.nix args;
+                                };
+                              };
+                            '';
                             default = { };
                           };
                           services = mkOption {
                             type = attrsOf types'.service;
+                            description = "Software that runs as a background process";
                             default = { };
                           };
                         };
@@ -266,6 +353,7 @@ let
                         # we can still reduce granularity and move all examples to the application level.
                         examples = mkOption {
                           type = attrsOf types'.example;
+                          description = "A configuration of an existing application module that illustrates how to use it";
                           default = { };
                         };
                         # TODO: Tests should really only be per example, in order to clarify that we care about tested examples more than merely tests.
@@ -273,7 +361,7 @@ let
                         #       Without this field, many applications will appear entirely untested although there's actually *some* assurance that *something* works.
                         #       Eventually we want to move to documentable tests exclusively, and then remove this field, but this may take a very long time.
                         tests = mkOption {
-                          type = attrsOf (nullOr types'.test);
+                          type = attrsOf types'.test;
                           default = { };
                         };
                       };

@@ -306,7 +306,7 @@ div.code > pre /* for pygments output */
   display: inline-block;
   padding: 0.1em 0.4em;
   background-color: transparent;
-  color: white;
+  color: white !important;
   text-align: center;
   text-decoration: none;
   border-radius: 5px;
@@ -333,6 +333,16 @@ div.code > pre /* for pygments output */
 }
 
 .button.download:hover {
+  background-color: darkgreen;
+}
+
+.button.example {
+  margin-bottom: 15px;
+  border-radius: 5px;
+  padding: 5px
+}
+
+.button.example:hover {
   background-color: darkgreen;
 }
 
@@ -432,6 +442,25 @@ article.project .deliverable-tag {
 dd {
   margin-left: 2em;
   margin-bottom: 1.5em;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #3c3434;
+    color: #f0decb;
+  }
+  a:link {
+    color: #9595ff;
+  }
+  a:visited {
+    color: #dc6edf;
+  }
+  code, pre {
+    background: #242222;
+  }
+  .code .ss {
+    color: #5D5AFF !important;
+  }
 }
 
 /* Desktop */

@@ -2,8 +2,9 @@
   sources,
   ...
 }:
+
 {
-  name = "cryptolyzer-help";
+  name = "slipshow";
 
   nodes = {
     machine =
@@ -11,8 +12,8 @@
       {
         imports = [
           sources.modules.ngipkgs
-          sources.modules.programs.cryptolyzer
-          sources.examples.CryptoLyzer.basic
+          sources.modules.programs.slipshow
+          sources.examples.slipshow.basic
         ];
       };
   };
@@ -22,6 +23,6 @@
     ''
       start_all()
 
-      machine.succeed("cryptolyze --help")
+      machine.succeed("slipshow --version")
     '';
 }

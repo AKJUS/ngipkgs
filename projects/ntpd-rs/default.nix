@@ -32,5 +32,5 @@
     };
   };
 
-  nixos.tests.ntpd-rs = "${sources.inputs.nixpkgs}/nixos/tests/ntpd-rs.nix";
+  nixos.tests.ntpd-rs.module = pkgs.nixosTests.ntpd-rs;
 }

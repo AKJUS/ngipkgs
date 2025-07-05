@@ -177,6 +177,44 @@ Instead, write one sentence per line, as this makes it easier to review changes.
 1. After the build succeeds, verify that the package works, if possible.
    This means running package tests if they're available or at least verify that the built package is not broken with something like `program_name --help`.
 
+## Implementing a program
+
+A program is a software applications that can be executed in the user's shell, which may have a Command-Line Interface (CLI), Terminal User Interface (TUI), or Graphical User Interface (GUI).
+
+1. To start, implement a NixOS module that adheres to the [program type](./projects/types.nix):
+
+<!-- TODO: figure out how to get this automatically from types.nix -->
+<!-- TODO: link to docs section on implementing an example? -->
+
+   ```nix
+   {
+     nixos.modules.programs.foobar = {
+       module = ./programs/foobar/module.nix;
+       examples.basic = {
+         module = ./programs/foobar/examples/basic.nix;
+         description = "Basic configuration example for foobar";
+         tests.basic.module = import ./programs/foobar/tests/basic.nix args;
+       };
+     };
+   }
+   ```
+
+1. Verify that the module is valid:
+
+   ```shellSession
+   nix-build -A checks.PROJECT_NAME
+   ```
+
+1. Run the tests, if they exist, and make sure they pass:
+
+   ```shellSession
+   nix-build -A projects.PROJECT_NAME.nixos.tests.TEST_NAME
+   ```
+
+1. [Run the overview locally](#running-and-testing-the-overview-locally), navigate to the project page and make sure that the program options and examples shows up correctly.
+
+1. [Make a Pull Request on GitHub](#how-to-create-pull-requests-to-ngipkgs)
+
 ## Triaging an NGI application
 
 An NGI-funded application is triaged by collecting relevant information and resources related to its packaging, which can be in the form of links to source repositories, documentation, previous packaging attempts, ...
@@ -401,6 +439,40 @@ In order to display a project on <ngi.nixos.org>, its metadata must be added to 
 
 1. Run the Nix code formatter with `nix fmt`
 1. Commit your changes and [create a new PR](#how-to-create-pull-requests-to-ngipkgs)
+
+## How to add an example
+
+An example, is a valid configuration of an existing application module that illustrates how to use it.
+Examples should capture a characteristic use case of the application and work exactly as shown.
+Therefore, examples are only displayed to users if they have working tests.
+
+To add an example:
+
+1. Figure out the application module options and how they are configured. For instace, this can be done by looking at the module's source code.
+
+2. Create a new `.nix` file to contain the valid example configuration.
+> [!NOTE]
+>
+> - Examples should work as-is without requiring additional configuration outside of what's shown.
+> - Include all necessary options and dependent services.
+
+3. In the project's `default.nix`, reference the example with a clear description:
+> [!NOTE]
+>
+> - Descriptions are for instructions on playing with the example.
+> - They are optional, but important.
+
+   ```nix
+   nixos.modules.services.some-service = {
+     module = ./services/some-service/module.nix;
+     examples."Basic mail server setup with default ports" = {
+      module = ./services/some-service/examples/basic.nix;
+      description = "Send email via SMTP to port 587 to check that it works";
+     };
+   };
+   ```
+4. Ensure the example works by building and running its test.
+<!--TODO: Reference the tests section when it is written -->
 
 ## Running and testing the overview locally
 
